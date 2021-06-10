@@ -1,0 +1,9 @@
+- name: install common packages
+  apt:
+    name:
+      - mc
+      - net-tools
+      - vim
+      - bash-completion
+      - wget
+      - python3-pip

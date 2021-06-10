@@ -1,0 +1,38 @@
+- name: add postgre repo key
+  apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+
+- name: add postgre repo
+  apt_repository:
+    repo: deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release | lower }}-pgdg main
+    state: present
+
+- name: install postgre
+  apt:
+    name:
+      - "postgresql-{{ postgres_version }}"
+      - "postgresql-client-{{ postgres_version }}"
+    update_cache: yes
+
+- name: enable and run postgre
+  systemd:
+    name: postgresql
+    enabled: yes
+    state: started
+
+- name: install psycopg2 python module
+  pip:
+    name: psycopg2-binary
+
+- name: change postgres password
+  become: yes
+  become_method: sudo
+  become_user: postgres
+  postgresql_user: 
+    name: postgres
+    password: "{{ postgres_pass }}"
+  notify:
+    - restart postgres
+
+ 
