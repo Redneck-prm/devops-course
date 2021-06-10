@@ -1,0 +1,47 @@
+---
+- hosts: all
+  become: yes
+
+  tasks:
+    - name: install nginx
+      apt:
+        name: nginx-extras
+        update_cache: yes
+
+    - name: enable and run nginx
+      systemd:
+        name: nginx
+        enabled: yes
+        state: started
+
+    - name: copy nginx config
+      copy:
+        src: files/nginx.conf
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: 644
+      notify:
+        - nginx config check
+        - nginx reload
+
+    - name: copy index.html
+      copy:
+        src: files/index.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: 644
+
+      
+  handlers:
+    - name: nginx config check
+      shell: nginx -t
+      register: nginx_config_status
+      ignore_errors: yes
+  
+    - name: nginx reload
+      systemd:
+        name: nginx
+        state: reloaded
+      when: nginx_config_status.rc == 0
